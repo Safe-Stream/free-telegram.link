@@ -6,10 +6,11 @@ on:
     tags: [ 'v*' ]
   pull_request:
     branches: [ main, master ]
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: safe-stream/free-telegram
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build-nginx:
@@ -35,18 +36,13 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-nginx
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=sha
             type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,prefix={{branch}}-
 
       - name: Build and push Nginx image
         uses: docker/build-push-action@v5
         with:
           context: ./nginx
-          file: ./nginx/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -74,18 +70,13 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-mtproxy
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=sha
             type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,prefix={{branch}}-
 
       - name: Build and push MTProxy image
         uses: docker/build-push-action@v5
         with:
           context: ./mtproxy
-          file: ./mtproxy/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

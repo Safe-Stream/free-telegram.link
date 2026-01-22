@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # MTProxy для Telegram
   mtproxy:
-    image: ghcr.io/safe-stream/free-telegram-mtproxy:latest
+    image: ghcr.io/safe-stream/free-telegram.link-mtproxy:latest
     container_name: telegram-mtproxy
     restart: unless-stopped
     ports:
@@ -22,7 +22,7 @@ services:
 
   # Nginx + веб-страница
   nginx:
-    image: ghcr.io/safe-stream/free-telegram-nginx:latest
+    image: ghcr.io/safe-stream/free-telegram.link-nginx:latest
     container_name: telegram-nginx
     restart: unless-stopped
     ports:

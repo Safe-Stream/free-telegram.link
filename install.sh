@@ -177,8 +177,8 @@ echo -e "${GREEN}✓ Конфигурация подготовлена${NC}"
 
 # Загрузка образов из GitHub
 echo -e "${YELLOW}📦 Загрузка Docker образов из GitHub Container Registry...${NC}"
-docker pull ghcr.io/safe-stream/free-telegram-nginx:latest
-docker pull ghcr.io/safe-stream/free-telegram-mtproxy:latest
+docker pull ghcr.io/safe-stream/free-telegram.link-nginx:latest
+docker pull ghcr.io/safe-stream/free-telegram.link-mtproxy:latest
 echo -e "${GREEN}✓ Образы загружены${NC}"
 
 # Запуск контейнеров
