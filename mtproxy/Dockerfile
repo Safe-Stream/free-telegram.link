@@ -1,36 +1,26 @@
+FROM golang:1.21-alpine AS builder
+
+# Устанавливаем git для клонирования
+RUN apk add --no-cache git
+
+# Клонируем и собираем MTG (MTProto Go)
+WORKDIR /build
+RUN git clone https://github.com/9seconds/mtg.git && \
+    cd mtg && \
+    go build -o mtg ./cmd/mtg
+
+# Финальный образ
 FROM alpine:latest
 
-# Устанавливаем зависимости для сборки и работы
-RUN apk add --no-cache \
-    build-base \
-    gcc \
-    g++ \
-    make \
-    linux-headers \
-    openssl-dev \
-    openssl-libs-static \
-    zlib-dev \
-    zlib-static \
-    git \
-    curl
+# Устанавливаем curl для скачивания конфигов
+RUN apk add --no-cache curl bash
 
-# Клонируем и собираем MTProxy
-WORKDIR /tmp
-RUN git clone https://github.com/TelegramMessenger/MTProxy.git /tmp/MTProxy && \
-    cd /tmp/MTProxy && \
-    make && \
-    cp objs/bin/mtproto-proxy /usr/local/bin/mtproto-proxy && \
-    chmod +x /usr/local/bin/mtproto-proxy && \
-    cd / && \
-    rm -rf /tmp/MTProxy && \
-    apk del build-base gcc g++ make git
+# Копируем бинарник из builder
+COPY --from=builder /build/mtg/mtg /usr/local/bin/mtg
+RUN chmod +x /usr/local/bin/mtg
 
 # Создаем рабочую директорию
 WORKDIR /data
-
-# Генерируем конфигурацию при запуске
-RUN curl -s https://core.telegram.org/getProxySecret -o proxy-secret && \
-    curl -s https://core.telegram.org/getProxyConfig -o proxy-multi.conf
 
 # Порт
 EXPOSE 443
