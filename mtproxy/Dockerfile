@@ -1,22 +1,29 @@
 FROM alpine:latest
 
-# Устанавливаем зависимости
+# Устанавливаем зависимости для сборки и работы
 RUN apk add --no-cache \
     build-base \
+    gcc \
+    g++ \
+    make \
     linux-headers \
     openssl-dev \
+    openssl-libs-static \
     zlib-dev \
+    zlib-static \
     git \
     curl
 
 # Клонируем и собираем MTProxy
 WORKDIR /tmp
-RUN git clone https://github.com/TelegramMessenger/MTProxy.git && \
-    cd MTProxy && \
+RUN git clone https://github.com/TelegramMessenger/MTProxy.git /tmp/MTProxy && \
+    cd /tmp/MTProxy && \
     make && \
-    cp objs/bin/mtproto-proxy /usr/local/bin/ && \
+    cp objs/bin/mtproto-proxy /usr/local/bin/mtproto-proxy && \
+    chmod +x /usr/local/bin/mtproto-proxy && \
     cd / && \
-    rm -rf /tmp/MTProxy
+    rm -rf /tmp/MTProxy && \
+    apk del build-base gcc g++ make git
 
 # Создаем рабочую директорию
 WORKDIR /data
