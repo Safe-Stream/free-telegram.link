@@ -1,0 +1,38 @@
+# .gitignore для Telegram Proxy
+
+# Конфиденциальные данные
+.env
+mtproxy-config.txt
+*.secret
+*.key
+*.pem
+
+# SSL сертификаты
+certbot/conf/
+certbot/www/
+
+# Логи
+logs/
+*.log
+
+# Конфигурационные файлы (создаются при установке)
+config/nginx.conf
+config/nginx-temp.conf
+config/index.html
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Временные файлы
+*.tmp
+*.bak
+*~
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
