@@ -134,7 +134,7 @@ echo -e "${GREEN} Image pulled${NC}\n"
 
 # Запуск контейнеров
 echo -e "${YELLOW} Starting containers...${NC}"
-docker-compose up -d
+docker compose up -d
 echo -e "${GREEN} Containers started${NC}\n"
 
 # Вывод информации
