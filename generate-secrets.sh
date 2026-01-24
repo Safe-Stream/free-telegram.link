@@ -14,33 +14,33 @@ echo -e "${BLUE}═════════════════════�
 
 echo -e "${YELLOW}Generating 4 secrets for MTProxy ports...${NC}\n"
 
-SECRET_8443=$(head -c 16 /dev/urandom | xxd -ps)
-SECRET_8444=$(head -c 16 /dev/urandom | xxd -ps)
-SECRET_8445=$(head -c 16 /dev/urandom | xxd -ps)
-SECRET_8446=$(head -c 16 /dev/urandom | xxd -ps)
+SECRET_2222=$(head -c 16 /dev/urandom | xxd -ps)
+SECRET_4444=$(head -c 16 /dev/urandom | xxd -ps)
+SECRET_3333=$(head -c 16 /dev/urandom | xxd -ps)
+SECRET_5555=$(head -c 16 /dev/urandom | xxd -ps)
 
 echo -e "${GREEN}✓ Secrets generated!${NC}\n"
 
 echo -e "${BLUE}════════════════════════════════════════${NC}"
-echo -e "Port 8443: ${GREEN}$SECRET_8443${NC}"
-echo -e "Port 8444: ${GREEN}$SECRET_8444${NC}"
-echo -e "Port 8445: ${GREEN}$SECRET_8445${NC}"
-echo -e "Port 8446: ${GREEN}$SECRET_8446${NC}"
+echo -e "Port 2222: ${GREEN}$SECRET_2222${NC}"
+echo -e "Port 4444: ${GREEN}$SECRET_4444${NC}"
+echo -e "Port 3333: ${GREEN}$SECRET_3333${NC}"
+echo -e "Port 5555: ${GREEN}$SECRET_5555${NC}"
 echo -e "${BLUE}════════════════════════════════════════${NC}\n"
 
 echo -e "${YELLOW}Add to .env file:${NC}\n"
 cat << EOF
-MTPROXY_SECRET_8443=$SECRET_8443
-MTPROXY_SECRET_8444=$SECRET_8444
-MTPROXY_SECRET_8445=$SECRET_8445
-MTPROXY_SECRET_8446=$SECRET_8446
+MTPROXY_SECRET_2222=$SECRET_2222
+MTPROXY_SECRET_4444=$SECRET_4444
+MTPROXY_SECRET_3333=$SECRET_3333
+MTPROXY_SECRET_5555=$SECRET_5555
 EOF
 
 echo -e "\n${YELLOW}Proxy links:${NC}\n"
-echo "tg://proxy?server=YOUR_DOMAIN&port=8443&secret=$SECRET_8443"
-echo "tg://proxy?server=YOUR_DOMAIN&port=8444&secret=$SECRET_8444"
-echo "tg://proxy?server=YOUR_DOMAIN&port=8445&secret=$SECRET_8445"
-echo "tg://proxy?server=YOUR_DOMAIN&port=8446&secret=$SECRET_8446"
+echo "tg://proxy?server=YOUR_DOMAIN&port=2222&secret=$SECRET_2222"
+echo "tg://proxy?server=YOUR_DOMAIN&port=4444&secret=$SECRET_4444"
+echo "tg://proxy?server=YOUR_DOMAIN&port=3333&secret=$SECRET_3333"
+echo "tg://proxy?server=YOUR_DOMAIN&port=5555&secret=$SECRET_5555"
 
 echo -e "\n${BLUE}════════════════════════════════════════${NC}"
 echo -e "${GREEN}✓ Done!${NC}"

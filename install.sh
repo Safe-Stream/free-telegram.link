@@ -63,16 +63,16 @@ cd /opt/free-telegram.link
 # Генерация 4 SECRET для MTProxy
 if [ ! -f .env ]; then
     echo -e "${YELLOW} Generating 4 MTProxy SECRETs...${NC}"
-    SECRET_8443=$(head -c 16 /dev/urandom | xxd -ps)
-    SECRET_8444=$(head -c 16 /dev/urandom | xxd -ps)
-    SECRET_8445=$(head -c 16 /dev/urandom | xxd -ps)
-    SECRET_8446=$(head -c 16 /dev/urandom | xxd -ps)
+    SECRET_2222=$(head -c 16 /dev/urandom | xxd -ps)
+    SECRET_4444=$(head -c 16 /dev/urandom | xxd -ps)
+    SECRET_3333=$(head -c 16 /dev/urandom | xxd -ps)
+    SECRET_5555=$(head -c 16 /dev/urandom | xxd -ps)
     
     cat > .env << ENVEOF
-MTPROXY_SECRET_8443=$SECRET_8443
-MTPROXY_SECRET_8444=$SECRET_8444
-MTPROXY_SECRET_8445=$SECRET_8445
-MTPROXY_SECRET_8446=$SECRET_8446
+MTPROXY_SECRET_2222=$SECRET_2222
+MTPROXY_SECRET_4444=$SECRET_4444
+MTPROXY_SECRET_3333=$SECRET_3333
+MTPROXY_SECRET_5555=$SECRET_5555
 LETSENCRYPT_EMAIL=
 DOMAIN=
 ENVEOF
@@ -80,10 +80,10 @@ ENVEOF
 else
     echo -e "${GREEN} .env file already exists${NC}\n"
     source .env
-    SECRET_8443=$MTPROXY_SECRET_8443
-    SECRET_8444=$MTPROXY_SECRET_8444
-    SECRET_8445=$MTPROXY_SECRET_8445
-    SECRET_8446=$MTPROXY_SECRET_8446
+    SECRET_2222=$MTPROXY_SECRET_2222
+    SECRET_4444=$MTPROXY_SECRET_4444
+    SECRET_3333=$MTPROXY_SECRET_3333
+    SECRET_5555=$MTPROXY_SECRET_5555
 fi
 
 # Скачивание конфигов Telegram
@@ -98,10 +98,10 @@ echo -e "${YELLOW} Creating MTProxy services...${NC}"
 mkdir -p /opt/mtproxy/secrets
 
 # Создание файлов с секретами для каждого порта
-echo "SECRET=$SECRET_8443" > /opt/mtproxy/secrets/8443.env
-echo "SECRET=$SECRET_8444" > /opt/mtproxy/secrets/8444.env
-echo "SECRET=$SECRET_8445" > /opt/mtproxy/secrets/8445.env
-echo "SECRET=$SECRET_8446" > /opt/mtproxy/secrets/8446.env
+echo "SECRET=$SECRET_2222" > /opt/mtproxy/secrets/2222.env
+echo "SECRET=$SECRET_4444" > /opt/mtproxy/secrets/4444.env
+echo "SECRET=$SECRET_3333" > /opt/mtproxy/secrets/3333.env
+echo "SECRET=$SECRET_5555" > /opt/mtproxy/secrets/5555.env
 
 # Создание systemd template сервиса для MTProxy
 cat > /etc/systemd/system/mtproxy@.service << 'EOF'
@@ -113,7 +113,7 @@ After=network.target
 Type=simple
 User=nobody
 EnvironmentFile=/opt/mtproxy/secrets/%i.env
-ExecStart=/usr/local/bin/mtproto-proxy -u nobody -p %i -H %i -S ${SECRET} --aes-pwd /opt/mtproxy/proxy-secret /opt/mtproxy/proxy-multi.conf -M 2
+ExecStart=/usr/local/bin/mtproto-proxy -u nobody -p %i -S ${SECRET} --aes-pwd /opt/mtproxy/proxy-secret /opt/mtproxy/proxy-multi.conf -M 2
 Restart=on-failure
 RestartSec=5s
 
@@ -123,8 +123,8 @@ EOF
 
 # Запуск всех 4 сервисов
 systemctl daemon-reload
-systemctl enable mtproxy@8443 mtproxy@8444 mtproxy@8445 mtproxy@8446
-systemctl start mtproxy@8443 mtproxy@8444 mtproxy@8445 mtproxy@8446
+systemctl enable mtproxy@2222 mtproxy@4444 mtproxy@3333 mtproxy@5555
+systemctl start mtproxy@2222 mtproxy@4444 mtproxy@3333 mtproxy@5555
 echo -e "${GREEN} 4 MTProxy services created and started${NC}\n"
 
 # Создание директорий для certbot
@@ -167,10 +167,10 @@ echo -e "${YELLOW} Generating config.js for website...${NC}"
 cat > nginx/html/config.js << CONFIGEOF
 // Auto-generated proxy configuration
 const PROXY_CONFIG = [
-    {port: 8443, secret: '$SECRET_8443'},
-    {port: 8444, secret: '$SECRET_8444'},
-    {port: 8445, secret: '$SECRET_8445'},
-    {port: 8446, secret: '$SECRET_8446'}
+    {port: 2222, secret: '$SECRET_2222'},
+    {port: 4444, secret: '$SECRET_4444'},
+    {port: 3333, secret: '$SECRET_3333'},
+    {port: 5555, secret: '$SECRET_5555'}
 ];
 CONFIGEOF
 
@@ -183,10 +183,10 @@ echo -e "${GREEN}============================================${NC}"
 echo -e "${GREEN}✅ Installation completed!${NC}"
 echo -e "${GREEN}============================================${NC}\n"
 echo -e "${YELLOW}📍 Proxy Links:${NC}\n"
-echo -e "${GREEN}Port 8443: tg://proxy?server=$DOMAIN&port=8443&secret=$SECRET_8443${NC}"
-echo -e "${GREEN}Port 8444: tg://proxy?server=$DOMAIN&port=8444&secret=$SECRET_8444${NC}"
-echo -e "${GREEN}Port 8445: tg://proxy?server=$DOMAIN&port=8445&secret=$SECRET_8445${NC}"
-echo -e "${GREEN}Port 8446: tg://proxy?server=$DOMAIN&port=8446&secret=$SECRET_8446${NC}\n"
+echo -e "${GREEN}Port 2222: tg://proxy?server=$DOMAIN&port=2222&secret=$SECRET_2222${NC}"
+echo -e "${GREEN}Port 4444: tg://proxy?server=$DOMAIN&port=4444&secret=$SECRET_4444${NC}"
+echo -e "${GREEN}Port 3333: tg://proxy?server=$DOMAIN&port=3333&secret=$SECRET_3333${NC}"
+echo -e "${GREEN}Port 5555: tg://proxy?server=$DOMAIN&port=5555&secret=$SECRET_5555${NC}\n"
 echo -e "${YELLOW}🌐 Website:${NC} https://$DOMAIN${NC}"
-echo -e "${YELLOW}📊 MTProxy Status:${NC} systemctl status mtproxy@{8443,8444,8445,8446}${NC}\n"
+echo -e "${YELLOW}📊 MTProxy Status:${NC} systemctl status mtproxy@{2222,4444,3333,5555}${NC}\n"
 echo -e "${GREEN}============================================${NC}"

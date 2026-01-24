@@ -71,18 +71,18 @@ ssh root@62.133.61.144
 ```bash
 cat /opt/free-telegram.link/.env
 # или отдельные файлы:
-cat /opt/mtproxy/secrets/8443.env
-cat /opt/mtproxy/secrets/8444.env
-cat /opt/mtproxy/secrets/8445.env
-cat /opt/mtproxy/secrets/8446.env
+cat /opt/mtproxy/secrets/2222.env
+cat /opt/mtproxy/secrets/4444.env
+cat /opt/mtproxy/secrets/3333.env
+cat /opt/mtproxy/secrets/5555.env
 ```
 
 **Прокси ссылки:**
 ```
-Port 8443: tg://proxy?server=free-telegram.link&port=8443&secret=<SECRET_8443>
-Port 8444: tg://proxy?server=free-telegram.link&port=8444&secret=<SECRET_8444>
-Port 8445: tg://proxy?server=free-telegram.link&port=8445&secret=<SECRET_8445>
-Port 8446: tg://proxy?server=free-telegram.link&port=8446&secret=<SECRET_8446>
+Port 2222: tg://proxy?server=free-telegram.link&port=2222&secret=<SECRET_2222>
+Port 4444: tg://proxy?server=free-telegram.link&port=4444&secret=<SECRET_4444>
+Port 3333: tg://proxy?server=free-telegram.link&port=3333&secret=<SECRET_3333>
+Port 5555: tg://proxy?server=free-telegram.link&port=5555&secret=<SECRET_5555>
 ```
 
 **Сайт:** https://free-telegram.link
@@ -96,28 +96,28 @@ Port 8446: tg://proxy?server=free-telegram.link&port=8446&secret=<SECRET_8446>
 ### MTProxy (4 сервиса)
 ```bash
 # Статус всех сервисов
-systemctl status mtproxy@{8443,8444,8445,8446}
+systemctl status mtproxy@{2222,4444,3333,5555}
 
 # Статус одного сервиса
-systemctl status mtproxy@8443
+systemctl status mtproxy@2222
 
 # Рестарт всех
-systemctl restart mtproxy@{8443,8444,8445,8446}
+systemctl restart mtproxy@{2222,4444,3333,5555}
 
 # Рестарт одного
-systemctl restart mtproxy@8444
+systemctl restart mtproxy@4444
 
 # Логи всех сервисов
 journalctl -u "mtproxy@*" -f
 
 # Логи одного порта
-journalctl -u mtproxy@8443 -f
+journalctl -u mtproxy@2222 -f
 
 # Активные подключения по портам
-echo "Port 8443: $(netstat -an | grep 8443 | grep ESTABLISHED | wc -l)"
-echo "Port 8444: $(netstat -an | grep 8444 | grep ESTABLISHED | wc -l)"
-echo "Port 8445: $(netstat -an | grep 8445 | grep ESTABLISHED | wc -l)"
-echo "Port 8446: $(netstat -an | grep 8446 | grep ESTABLISHED | wc -l)"
+echo "Port 2222: $(netstat -an | grep 2222 | grep ESTABLISHED | wc -l)"
+echo "Port 4444: $(netstat -an | grep 4444 | grep ESTABLISHED | wc -l)"
+echo "Port 3333: $(netstat -an | grep 3333 | grep ESTABLISHED | wc -l)"
+echo "Port 5555: $(netstat -an | grep 5555 | grep ESTABLISHED | wc -l)"
 ```
 
 ### Docker
@@ -137,8 +137,8 @@ journalctl -u "mtproxy@*" -f
 journalctl -u "mtproxy@*" -n 50
 
 # MTProxy (конкретный порт)
-journalctl -u mtproxy@8443 -f
-journalctl -u mtproxy@8444 -n 50
+journalctl -u mtproxy@2222 -f
+journalctl -u mtproxy@4444 -n 50
 
 # Nginx
 docker logs -f free-telegram-nginx
@@ -176,7 +176,7 @@ cd /opt/free-telegram.link
 git pull
 docker compose pull
 docker compose up -d --force-recreate
-systemctl restart mtproxy@{8443,8444,8445,8446}
+systemctl restart mtproxy@{2222,4444,3333,5555}
 ```
 
 Или используйте:
@@ -191,7 +191,7 @@ systemctl restart mtproxy@{8443,8444,8445,8446}
 ```bash
 ping free-telegram.link
 curl -I https://free-telegram.link
-nc -zv free-telegram.link 8443
+nc -zv free-telegram.link 2222
 ```
 
 ---
@@ -236,10 +236,10 @@ iftop
 ### MTProxy не работает
 ```bash
 # Проверить статус всех
-systemctl status mtproxy@{8443,8444,8445,8446}
+systemctl status mtproxy@{2222,4444,3333,5555}
 
 # Логи конкретного сервиса
-journalctl -u mtproxy@8443 -n 100
+journalctl -u mtproxy@2222 -n 100
 
 # Проверить файлы
 ls -la /opt/mtproxy/
@@ -247,10 +247,10 @@ ls -la /opt/mtproxy/secrets/
 which mtproto-proxy
 
 # Рестарт всех
-systemctl restart mtproxy@{8443,8444,8445,8446}
+systemctl restart mtproxy@{2222,4444,3333,5555}
 
 # Рестарт конкретного
-systemctl restart mtproxy@8443
+systemctl restart mtproxy@2222
 ```
 
 ### Nginx не работает
@@ -266,14 +266,14 @@ docker compose up -d --force-recreate nginx
 netstat -tlnp | grep ':844[3-6]'
 
 # Проверить конкретный порт
-lsof -i :8443
-lsof -i :8444
+lsof -i :2222
+lsof -i :4444
 
 # Убить процесс
 kill -9 <PID>
 
 # Или рестартнуть сервис
-systemctl restart mtproxy@8443
+systemctl restart mtproxy@2222
 ```
 
 ---
@@ -346,10 +346,10 @@ ufw status
 ufw allow 22/tcp
 ufw allow 80/tcp
 ufw allow 443/tcp
-ufw allow 8443/tcp
-ufw allow 8444/tcp
-ufw allow 8445/tcp
-ufw allow 8446/tcp
+ufw allow 2222/tcp
+ufw allow 4444/tcp
+ufw allow 3333/tcp
+ufw allow 5555/tcp
 ufw enable
 
 # Обновления
@@ -362,20 +362,20 @@ apt update && apt upgrade -y
 
 ```bash
 # Перезапуск всего
-systemctl restart mtproxy@{8443,8444,8445,8446} && docker compose restart
+systemctl restart mtproxy@{2222,4444,3333,5555} && docker compose restart
 
 # Проверка статуса
-systemctl status mtproxy@{8443,8444,8445,8446} && docker ps
+systemctl status mtproxy@{2222,4444,3333,5555} && docker ps
 
 # Обновление
-cd /opt/free-telegram.link && git pull && docker compose pull && docker compose up -d --force-recreate && systemctl restart mtproxy@{8443,8444,8445,8446}
+cd /opt/free-telegram.link && git pull && docker compose pull && docker compose up -d --force-recreate && systemctl restart mtproxy@{2222,4444,3333,5555}
 
 # Активные подключения (суммарно по всем портам)
 echo "Total connections: $(netstat -an | grep -E ':844[3-6]' | grep ESTABLISHED | wc -l)"
-echo "Port 8443: $(netstat -an | grep 8443 | grep ESTABLISHED | wc -l)"
-echo "Port 8444: $(netstat -an | grep 8444 | grep ESTABLISHED | wc -l)"
-echo "Port 8445: $(netstat -an | grep 8445 | grep ESTABLISHED | wc -l)"
-echo "Port 8446: $(netstat -an | grep 8446 | grep ESTABLISHED | wc -l)"
+echo "Port 2222: $(netstat -an | grep 2222 | grep ESTABLISHED | wc -l)"
+echo "Port 4444: $(netstat -an | grep 4444 | grep ESTABLISHED | wc -l)"
+echo "Port 3333: $(netstat -an | grep 3333 | grep ESTABLISHED | wc -l)"
+echo "Port 5555: $(netstat -an | grep 5555 | grep ESTABLISHED | wc -l)"
 
 # Проверка SSL
 openssl x509 -in /etc/letsencrypt/live/free-telegram.link/cert.pem -noout -dates

@@ -63,6 +63,8 @@ echo -e "${GREEN}✓ Docker контейнеры перезапущены${NC}"
 
 # Перезапуск MTProxy systemd сервисов
 echo -e "${YELLOW}🔄 Перезапуск MTProxy сервисов...${NC}"
+systemctl daemon-reload
+systemctl restart mtproxy@{2222,4444,3333,5555}
 systemctl restart mtproxy@8443 mtproxy@8444 mtproxy@8445 mtproxy@8446
 
 if [ $? -ne 0 ]; then
