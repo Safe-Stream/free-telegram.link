@@ -1,6 +1,15 @@
 ﻿version: '3.8'
 
 services:
+  mtproxy:
+    build: ./mtproxy
+    container_name: free-telegram-mtproxy
+    network_mode: host
+    environment:
+      - SECRET=${MTPROXY_SECRET}
+    command: ["-u", "nobody", "-p", "8443", "-S", "${MTPROXY_SECRET}", "--aes-pwd", "/opt/mtproxy/proxy-secret", "/opt/mtproxy/proxy-multi.conf", "-M", "1"]
+    restart: unless-stopped
+
   nginx:
     image: ghcr.io/safe-stream/free-telegram.link-nginx:latest
     container_name: free-telegram-nginx
