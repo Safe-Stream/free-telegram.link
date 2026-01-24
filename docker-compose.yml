@@ -10,6 +10,7 @@ services:
     volumes:
       - ./certbot/conf:/etc/letsencrypt:ro
       - ./certbot/www:/var/www/certbot:ro
+      - ./nginx/html/config.js:/usr/share/nginx/html/config.js:ro
     restart: unless-stopped
 
   certbot:
