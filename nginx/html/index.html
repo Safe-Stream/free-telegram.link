@@ -252,8 +252,8 @@
     <script src="config.js"></script>
     
     <script>
-        // Функция для получения случайного прокси из конфигурации
-        function getRandomProxy() {
+        // Функция для получения прокси с sticky session (постоянный для пользователя)
+        function getUserProxy() {
             if (typeof PROXY_CONFIG === 'undefined' || PROXY_CONFIG.length === 0) {
                 // Fallback на порт 8443 если config.js не загрузился
                 return {
@@ -261,19 +261,38 @@
                     secret: 'PLACEHOLDER_SECRET'
                 };
             }
+
+            // Попытка получить сохраненный порт из localStorage
+            const savedPort = localStorage.getItem('telegram_proxy_port');
+            
+            if (savedPort) {
+                // Найти прокси с сохраненным портом
+                const savedProxy = PROXY_CONFIG.find(p => p.port === parseInt(savedPort));
+                if (savedProxy) {
+                    console.log('Using saved proxy port:', savedPort);
+                    return savedProxy;
+                }
+            }
+
+            // Если сохраненного порта нет - выбрать случайный
             const randomIndex = Math.floor(Math.random() * PROXY_CONFIG.length);
-            return PROXY_CONFIG[randomIndex];
+            const proxy = PROXY_CONFIG[randomIndex];
+            
+            // Сохранить выбранный порт в localStorage
+            localStorage.setItem('telegram_proxy_port', proxy.port);
+            console.log('New proxy port assigned:', proxy.port);
+            
+            return proxy;
         }
 
         // Генерация ссылки при загрузке страницы
-        const proxy = getRandomProxy();
+        const proxy = getUserProxy();
         const proxyLink = `tg://proxy?server=free-telegram.link&port=${proxy.port}&secret=${proxy.secret}`;
         
         // Установка ссылки на кнопку
         document.getElementById('proxyButton').href = proxyLink;
         
-        // Логирование для отладки (опционально, можно убрать в продакшене)
-        console.log('Selected proxy port:', proxy.port);
+        console.log('Proxy link ready. Port:', proxy.port);
     </script>
 </body>
 </html>
