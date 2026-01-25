@@ -1,0 +1,18 @@
+[Unit]
+Description=MTProxy - Telegram Proxy
+After=network.target
+Before=docker.service
+
+[Service]
+Type=simple
+User=mtproxy
+Group=mtproxy
+EnvironmentFile=/opt/free-telegram.link/.env
+ExecStart=/usr/local/bin/mtproto-proxy -u mtproxy -p 8888 -H 8443 -H 8080 -H 1080 -S ${MTPROXY_SECRET} --aes-pwd /opt/mtproxy/proxy-secret /opt/mtproxy/proxy-multi.conf -M 4
+Restart=on-failure
+RestartSec=5s
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

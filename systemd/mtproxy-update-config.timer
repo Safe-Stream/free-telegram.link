@@ -1,0 +1,10 @@
+[Unit]
+Description=MTProxy Daily Config Update Timer
+Requires=mtproxy-update-config.service
+
+[Timer]
+OnCalendar=03:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

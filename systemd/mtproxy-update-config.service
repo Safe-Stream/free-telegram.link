@@ -1,0 +1,12 @@
+[Unit]
+Description=MTProxy Config Update Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=mtproxy
+Group=mtproxy
+ExecStart=/bin/bash /opt/free-telegram.link/scripts/update-config.sh
+StandardOutput=journal
+StandardError=journal

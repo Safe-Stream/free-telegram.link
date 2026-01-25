@@ -106,7 +106,7 @@ Type=simple
 User=mtproxy
 Group=mtproxy
 EnvironmentFile=/opt/free-telegram.link/.env
-ExecStart=/usr/local/bin/mtproto-proxy -p 8443 -S ${MTPROXY_SECRET} --aes-pwd /opt/mtproxy/proxy-secret /opt/mtproxy/proxy-multi.conf -M 4
+ExecStart=/usr/local/bin/mtproto-proxy -u mtproxy -p 8888 -H 8443 -H 8080 -H 1080 -S ${MTPROXY_SECRET} --aes-pwd /opt/mtproxy/proxy-secret /opt/mtproxy/proxy-multi.conf -M 4
 Restart=on-failure
 RestartSec=5s
 StandardOutput=journal
@@ -116,11 +116,23 @@ StandardError=journal
 WantedBy=multi-user.target
 EOF
 
-# Запуск сервиса
+# Создание systemd timer для автообновления конфигов
+echo -e "${YELLOW} Creating config auto-update timer...${NC}"
+cp systemd/mtproxy-update-config.service /etc/systemd/system/
+cp systemd/mtproxy-update-config.timer /etc/systemd/system/
+chmod +x scripts/update-config.sh
+
+# Запуск сервисов
 systemctl daemon-reload
 systemctl enable mtproxy
 systemctl start mtproxy
-echo -e "${GREEN} MTProxy service created and started (4 workers for 8-core CPU)${NC}\n"
+systemctl enable mtproxy-update-config.timer
+systemctl start mtproxy-update-config.timer
+echo -e "${GREEN} MTProxy service created and started${NC}"
+echo -e "${GREEN} • Ports: 8443, 8080, 1080 (multiple ports for bypass)${NC}"
+echo -e "${GREEN} • Workers: 4 (optimized for 8-core CPU)${NC}"
+echo -e "${GREEN} • Statistics: localhost:8888${NC}"
+echo -e "${GREEN} • Config auto-update: daily at 03:00${NC}\n"
 
 # Создание директорий для certbot
 mkdir -p certbot/conf certbot/www
@@ -162,10 +174,12 @@ echo -e "${YELLOW} Generating config.js for website...${NC}"
 source .env
 cat > nginx/html/config.js << CONFIGEOF
 // Auto-generated proxy configuration
-const PROXY_CONFIG = [{
-    port: 8443,
-    secret: '${MTPROXY_SECRET}'
-}];
+// Multiple ports for better availability and ISP bypass
+const PROXY_CONFIG = [
+    {port: 8443, secret: '${MTPROXY_SECRET}', label: 'Main'},
+    {port: 8080, secret: '${MTPROXY_SECRET}', label: 'Alt 1'},
+    {port: 1080, secret: '${MTPROXY_SECRET}', label: 'Alt 2'}
+];
 CONFIGEOF
 
 # Обновление index.html с правильным секретом
@@ -179,9 +193,13 @@ echo -e "${GREEN} config.js generated and applied${NC}\n"
 echo -e "${GREEN}============================================${NC}"
 echo -e "${GREEN}✅ Installation completed!${NC}"
 echo -e "${GREEN}============================================${NC}\n"
-echo -e "${YELLOW}📍 Proxy Link:${NC}\n"
-echo -e "${GREEN}tg://proxy?server=\$DOMAIN&port=8443&secret=dd${MTPROXY_SECRET}${NC}\n"
+echo -e "${YELLOW}📍 Proxy Links:${NC}\n"
+echo -e "${GREEN}Port 8443:${NC} tg://proxy?server=\$DOMAIN&port=8443&secret=dd${MTPROXY_SECRET}${NC}"
+echo -e "${GREEN}Port 8080:${NC} tg://proxy?server=\$DOMAIN&port=8080&secret=dd${MTPROXY_SECRET}${NC}"
+echo -e "${GREEN}Port 1080:${NC} tg://proxy?server=\$DOMAIN&port=1080&secret=dd${MTPROXY_SECRET}${NC}\n"
 echo -e "${YELLOW}🌐 Website:${NC} https://\$DOMAIN${NC}"
 echo -e "${YELLOW}📊 MTProxy Status:${NC} systemctl status mtproxy${NC}"
-echo -e "${YELLOW}📊 MTProxy Logs:${NC} journalctl -u mtproxy -f${NC}\n"
+echo -e "${YELLOW}📊 MTProxy Logs:${NC} journalctl -u mtproxy -f${NC}"
+echo -e "${YELLOW}📈 Statistics:${NC} curl http://localhost:8888/stats${NC}"
+echo -e "${YELLOW}⏰ Config Timer:${NC} systemctl status mtproxy-update-config.timer${NC}\n"
 echo -e "${GREEN}============================================${NC}"
