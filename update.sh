@@ -38,7 +38,16 @@ fi
 
 echo -e "${GREEN}✓ Код обновлен${NC}"
 
-echo -e "${YELLOW}📦 Загрузка последних Docker образов...${NC}"
+echo -e "${YELLOW}� Обновление MTProxy бинарника...${NC}"
+cd /opt/MTProxy
+git pull
+make clean
+make
+cp objs/bin/mtproto-proxy /usr/local/bin/
+cd "$SCRIPT_DIR"
+echo -e "${GREEN}✓ MTProxy обновлен${NC}"
+
+echo -e "${YELLOW}�📦 Загрузка последних Docker образов...${NC}"
 docker-compose pull
 
 if [ $? -ne 0 ]; then
@@ -61,18 +70,17 @@ fi
 
 echo -e "${GREEN}✓ Docker контейнеры перезапущены${NC}"
 
-# Перезапуск MTProxy systemd сервисов
-echo -e "${YELLOW}🔄 Перезапуск MTProxy сервисов...${NC}"
+# Перезапуск MTProxy systemd сервиса
+echo -e "${YELLOW}🔄 Перезапуск MTProxy сервиса...${NC}"
 systemctl daemon-reload
-systemctl restart mtproxy@{2222,4444,3333,5555}
-systemctl restart mtproxy@8443 mtproxy@8444 mtproxy@8445 mtproxy@8446
+systemctl restart mtproxy
 
 if [ $? -ne 0 ]; then
     echo -e "${RED}❌ Ошибка при перезапуске MTProxy${NC}"
     exit 1
 fi
 
-echo -e "${GREEN}✓ MTProxy сервисы перезапущены${NC}"
+echo -e "${GREEN}✓ MTProxy сервис перезапущен${NC}"
 
 echo ""
 echo -e "${GREEN}╔════════════════════════════════════════════════╗${NC}"
@@ -86,12 +94,12 @@ echo -e "${BLUE}📊 Статус Docker сервисов:${NC}"
 docker-compose ps
 
 echo ""
-echo -e "${BLUE}📊 Статус MTProxy сервисов:${NC}"
-systemctl status mtproxy@8443 mtproxy@8444 mtproxy@8445 mtproxy@8446 --no-pager | grep -E "Active:|mtproxy@"
+echo -e "${BLUE}📊 Статус MTProxy сервиса:${NC}"
+systemctl status mtproxy --no-pager -l | head -20
 
 echo ""
 docker-compose ps | grep "Up" && echo -e "${GREEN}✓ Docker сервисы работают${NC}" || echo -e "${RED}❌ Проблемы с Docker${NC}"
-systemctl is-active mtproxy@8443 mtproxy@8444 mtproxy@8445 mtproxy@8446 >/dev/null 2>&1 && echo -e "${GREEN}✓ MTProxy сервисы работают${NC}" || echo -e "${RED}❌ Проблемы с MTProxy${NC}"
+systemctl is-active mtproxy >/dev/null 2>&1 && echo -e "${GREEN}✓ MTProxy сервис работает${NC}" || echo -e "${RED}❌ Проблемы с MTProxy${NC}"
 
 echo ""
 echo -e "${YELLOW}💡 Полезные команды:${NC}"

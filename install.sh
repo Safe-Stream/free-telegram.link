@@ -60,30 +60,29 @@ make
 cp objs/bin/mtproto-proxy /usr/local/bin/
 cd /opt/free-telegram.link
 
-# Генерация 4 SECRET для MTProxy
+# Создание системного пользователя mtproxy
+echo -e "${YELLOW} Creating mtproxy system user...${NC}"
+if ! id -u mtproxy > /dev/null 2>&1; then
+    useradd -r -s /bin/false mtproxy
+    echo -e "${GREEN} User 'mtproxy' created${NC}\n"
+else
+    echo -e "${GREEN} User 'mtproxy' already exists${NC}\n"
+fi
+
+# Генерация SECRET для MTProxy
 if [ ! -f .env ]; then
-    echo -e "${YELLOW} Generating 4 MTProxy SECRETs...${NC}"
-    SECRET_2222=$(head -c 16 /dev/urandom | xxd -ps)
-    SECRET_4444=$(head -c 16 /dev/urandom | xxd -ps)
-    SECRET_3333=$(head -c 16 /dev/urandom | xxd -ps)
-    SECRET_5555=$(head -c 16 /dev/urandom | xxd -ps)
+    echo -e "${YELLOW} Generating MTProxy SECRET...${NC}"
+    MTPROXY_SECRET=$(head -c 16 /dev/urandom | xxd -ps)
     
     cat > .env << ENVEOF
-MTPROXY_SECRET_2222=$SECRET_2222
-MTPROXY_SECRET_4444=$SECRET_4444
-MTPROXY_SECRET_3333=$SECRET_3333
-MTPROXY_SECRET_5555=$SECRET_5555
+MTPROXY_SECRET=$MTPROXY_SECRET
 LETSENCRYPT_EMAIL=
 DOMAIN=
 ENVEOF
-    echo -e "${GREEN} 4 SECRETs generated${NC}\n"
+    echo -e "${GREEN} SECRET generated: $MTPROXY_SECRET${NC}\n"
 else
     echo -e "${GREEN} .env file already exists${NC}\n"
     source .env
-    SECRET_2222=$MTPROXY_SECRET_2222
-    SECRET_4444=$MTPROXY_SECRET_4444
-    SECRET_3333=$MTPROXY_SECRET_3333
-    SECRET_5555=$MTPROXY_SECRET_5555
 fi
 
 # Скачивание конфигов Telegram
@@ -91,41 +90,37 @@ echo -e "${YELLOW} Downloading Telegram configs...${NC}"
 mkdir -p /opt/mtproxy
 curl -s https://core.telegram.org/getProxySecret -o /opt/mtproxy/proxy-secret
 curl -s https://core.telegram.org/getProxyConfig -o /opt/mtproxy/proxy-multi.conf
+chown -R mtproxy:mtproxy /opt/mtproxy
 echo -e "${GREEN} Configs downloaded${NC}\n"
 
-# Создание директории для секретов
-echo -e "${YELLOW} Creating MTProxy services...${NC}"
-mkdir -p /opt/mtproxy/secrets
-
-# Создание файлов с секретами для каждого порта
-echo "SECRET=$SECRET_2222" > /opt/mtproxy/secrets/2222.env
-echo "SECRET=$SECRET_4444" > /opt/mtproxy/secrets/4444.env
-echo "SECRET=$SECRET_3333" > /opt/mtproxy/secrets/3333.env
-echo "SECRET=$SECRET_5555" > /opt/mtproxy/secrets/5555.env
-
-# Создание systemd template сервиса для MTProxy
-cat > /etc/systemd/system/mtproxy@.service << 'EOF'
+# Создание systemd сервиса для MTProxy
+echo -e "${YELLOW} Creating MTProxy service...${NC}"
+cat > /etc/systemd/system/mtproxy.service << 'EOF'
 [Unit]
-Description=MTProxy - Telegram Proxy (Port %i)
+Description=MTProxy - Telegram Proxy
 After=network.target
+Before=docker.service
 
 [Service]
 Type=simple
-User=nobody
-EnvironmentFile=/opt/mtproxy/secrets/%i.env
-ExecStart=/usr/local/bin/mtproto-proxy -u nobody -p %i -S ${SECRET} --aes-pwd /opt/mtproxy/proxy-secret /opt/mtproxy/proxy-multi.conf -M 2
+User=mtproxy
+Group=mtproxy
+EnvironmentFile=/opt/free-telegram.link/.env
+ExecStart=/usr/local/bin/mtproto-proxy -p 8443 -S ${MTPROXY_SECRET} --aes-pwd /opt/mtproxy/proxy-secret /opt/mtproxy/proxy-multi.conf -M 4
 Restart=on-failure
 RestartSec=5s
+StandardOutput=journal
+StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
-# Запуск всех 4 сервисов
+# Запуск сервиса
 systemctl daemon-reload
-systemctl enable mtproxy@2222 mtproxy@4444 mtproxy@3333 mtproxy@5555
-systemctl start mtproxy@2222 mtproxy@4444 mtproxy@3333 mtproxy@5555
-echo -e "${GREEN} 4 MTProxy services created and started${NC}\n"
+systemctl enable mtproxy
+systemctl start mtproxy
+echo -e "${GREEN} MTProxy service created and started (4 workers for 8-core CPU)${NC}\n"
 
 # Создание директорий для certbot
 mkdir -p certbot/conf certbot/www
@@ -162,17 +157,19 @@ echo -e "${YELLOW} Starting containers...${NC}"
 docker compose up -d
 echo -e "${GREEN} Containers started${NC}\n"
 
-# Генерация config.js для веб-сайта с секретами
+# Генерация config.js для веб-сайта
 echo -e "${YELLOW} Generating config.js for website...${NC}"
+source .env
 cat > nginx/html/config.js << CONFIGEOF
 // Auto-generated proxy configuration
-const PROXY_CONFIG = [
-    {port: 2222, secret: '$SECRET_2222'},
-    {port: 4444, secret: '$SECRET_4444'},
-    {port: 3333, secret: '$SECRET_3333'},
-    {port: 5555, secret: '$SECRET_5555'}
-];
+const PROXY_CONFIG = [{
+    port: 8443,
+    secret: '${MTPROXY_SECRET}'
+}];
 CONFIGEOF
+
+# Обновление index.html с правильным секретом
+sed -i "s/PLACEHOLDER_SECRET/${MTPROXY_SECRET}/g" nginx/html/index.html
 
 # Пересоздать Nginx контейнер для применения config.js
 docker compose restart nginx
@@ -182,11 +179,9 @@ echo -e "${GREEN} config.js generated and applied${NC}\n"
 echo -e "${GREEN}============================================${NC}"
 echo -e "${GREEN}✅ Installation completed!${NC}"
 echo -e "${GREEN}============================================${NC}\n"
-echo -e "${YELLOW}📍 Proxy Links:${NC}\n"
-echo -e "${GREEN}Port 2222: tg://proxy?server=$DOMAIN&port=2222&secret=$SECRET_2222${NC}"
-echo -e "${GREEN}Port 4444: tg://proxy?server=$DOMAIN&port=4444&secret=$SECRET_4444${NC}"
-echo -e "${GREEN}Port 3333: tg://proxy?server=$DOMAIN&port=3333&secret=$SECRET_3333${NC}"
-echo -e "${GREEN}Port 5555: tg://proxy?server=$DOMAIN&port=5555&secret=$SECRET_5555${NC}\n"
-echo -e "${YELLOW}🌐 Website:${NC} https://$DOMAIN${NC}"
-echo -e "${YELLOW}📊 MTProxy Status:${NC} systemctl status mtproxy@{2222,4444,3333,5555}${NC}\n"
+echo -e "${YELLOW}📍 Proxy Link:${NC}\n"
+echo -e "${GREEN}tg://proxy?server=\$DOMAIN&port=8443&secret=dd${MTPROXY_SECRET}${NC}\n"
+echo -e "${YELLOW}🌐 Website:${NC} https://\$DOMAIN${NC}"
+echo -e "${YELLOW}📊 MTProxy Status:${NC} systemctl status mtproxy${NC}"
+echo -e "${YELLOW}📊 MTProxy Logs:${NC} journalctl -u mtproxy -f${NC}\n"
 echo -e "${GREEN}============================================${NC}"
